@@ -1,0 +1,11 @@
+outcome,risk_type,outcome_type,population_type,source,ERF,metric,threshold,reference,DW
+All-cause mortality,relative_risk,incidence,adults,road,"ifelse(c > threshold, (c - threshold) * 1.055, 0)",lden,45,"Engelmann et al. (2025), ch. 3.3.1",1.0
+All-cause mortality,relative_risk,incidence,adults,rail,"ifelse(c > threshold, (c - threshold) * 1.055, 0)",lden,45,"Engelmann et al. (2025), ch. 3.3.1",1.0
+All-cause mortality,relative_risk,incidence,adults,air,"ifelse(c > threshold, (c - threshold) * 1.055, 0)",lden,45,"Engelmann et al. (2025), ch. 3.3.1",1.0
+Cardiovascular disease,relative_risk,incidence,adults,road,"ifelse(c > threshold, (c - threshold) * 1.032, 0)",lden,45,"Engelmann et al. (2025), ch. 3.3.2",0.129
+Cardiovascular disease,relative_risk,incidence,adults,rail,"ifelse(c > threshold, (c - threshold) * 1.032, 0)",lden,45,"Engelmann et al. (2025), ch. 3.3.2",0.129
+Cardiovascular disease,relative_risk,incidence,adults,air,"ifelse(c > threshold, (c - threshold) * 1.032, 0)",lden,45,"Engelmann et al. (2025), ch. 3.3.2",0.129
+Diabetes,relative_risk,incidence,adults,road,"ifelse(c > threshold, (c - threshold) * 1.062, 0)",lden,45,"Engelmann et al. (2025), ch. 3.3.3",0.066
+Diabetes,relative_risk,incidence,adults,rail,"ifelse(c > threshold, (c - threshold) * 1.062, 0)",lden,45,"Engelmann et al. (2025), ch. 3.3.3",0.066
+Diabetes,relative_risk,incidence,adults,air,"ifelse(c > threshold, (c - threshold) * 1.062, 0)",lden,45,"Engelmann et al. (2025), ch. 3.3.3",0.066
+Reading Comprehension,relative_risk,prevalence,children,air,"ifelse(c >= threshold, 1 / (1 + exp(-(log(0.1 / 0.9) + (log(1.38) / 10 * (c - 50)))), 0.1)",lden,50,Clark et al. (2006) and van Kempen (2008),0.022
