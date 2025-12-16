@@ -9,7 +9,8 @@ library(purrr)
 ## ETCHE Input lesen
 
 functionsETCHE <- read_excel("data/functionsETCHE.xlsx") %>%
-  mutate(ERF = str_replace_all(ERF, "threshold", as.character(threshold)))
+  mutate(ERF = str_replace_all(ERF, "threshold", as.character(threshold))) %>%
+  mutate(DW = as.numeric(DW))
 
 ## HLNUG Expositionsdaten lesen
 
@@ -32,6 +33,8 @@ dat_ind <- read_excel(
   skip = 1,
   n_max = 6
 )
+
+
 
 ## Expositionsdaten schön machen
 
@@ -83,11 +86,18 @@ calc_geo_ar_impact <- function(dat) {
         cutoff_central = first(.$threshold),
         erf_eq_central = first(.$ERF),
         geo_id_micro = .$name_stadt_gemeinde,
-        geo_id_macro = .$kreis
+        geo_id_macro = .$kreis,
+        dw_central = .$DW,
+        duration_central = 1
       )
     } %>%
     .$health_detailed %>%
-    .$results_raw
+    .$results_raw %>%
+    mutate(
+      source = dat$source[1],
+      metric = dat$metric[1],
+      outcome = dat$outcome[1]
+    )
 }
 
 
@@ -119,13 +129,16 @@ ggsave("plots/exposition_Kreis GG.png")
 ################# Expositions-Wirkungen Paare
 
 
-#Zusammenführen Expositionsdaten und ERF-Funktionen 
+#Zusammenführen Expositionsdaten und ERF-Funktionen
 ## (Wahrscheinlich keine gute Idee)
 dat_exp_ERF <- dat_l %>%
   left_join(functionsETCHE,
             by = c("source", "metric"),
             relationship = "many-to-many") %>%
   mutate(threshold = replace_na(threshold, 0))
+
+functionsETCHE$outcome %>%
+  unique()
 
 #Berechnung der Gesundheitsauswirkungen für Straßenlärm und hohe Lärmbelästigung
 HA_road_res <- dat_exp_ERF %>%
@@ -138,6 +151,18 @@ HA_road_res <- dat_exp_ERF %>%
   {
     calc_geo_ar_impact(.)
   }
+#Berechnung der Gesundheitsauswirkungen für Straßenlärm und hohe Schlafstörung
+HSD_road_res <- dat_exp_ERF %>%
+  filter(source == "road") %>%
+  filter(metric == "lnight") %>%
+  filter(outcome == "High sleep disturbance") %>%
+  # nth(1) %>%
+  # .$ERF %>%
+  # as.character()%>%
+  {
+    calc_geo_ar_impact(.)
+  }
+
 
 #Berechnung der Gesundheitsauswirkungen für Fluglärm und hohe Lärmbelästigung
 HA_air_res <- dat_exp_ERF %>%
@@ -148,7 +173,31 @@ HA_air_res <- dat_exp_ERF %>%
   # .$ERF %>%
   # as.character()%>%
   {
-    calc_geo_ar_impact(., fkt = .$ERF)
+    calc_geo_ar_impact(.)
+  }
+
+#HSD Fluglärm
+HSD_air_res <- dat_exp_ERF %>%
+  filter(source == "air") %>%
+  filter(metric == "lnight") %>%
+  filter(outcome == "High sleep disturbance") %>%
+  # nth(1) %>%
+  # .$ERF %>%
+  # as.character()%>%
+  {
+    calc_geo_ar_impact(.)
+  }
+
+# Reading comprehension - Fluglärm
+Reading_air_res <- dat_exp_ERF %>%
+  filter(source == "air") %>%
+  filter(metric == "lden") %>%
+  filter(outcome == "Reading Comprehension") %>%
+  # nth(1) %>%
+  # .$ERF %>%
+  # as.character()%>%
+  {
+    calc_geo_ar_impact(.)
   }
 
 
@@ -162,22 +211,29 @@ HA_road_res %>%
   ggplot(aes(x = "", fill = geo_id_micro, y = impact)) +
   geom_col() +
   coord_polar(theta = "y") +
-  labs(title = "Verteilung Menschen mit durch Straßenlärm bedingten hohen Lärmbelästigung im Kreis Groß Gerau")
+  labs(title = "Verteilung DALY durch Straßenlärm bedingten hohen Lärmbelästigung im Kreis Groß Gerau")
 ggsave("plots/HA_road_KreisGG.png")
 
-HA_all <-
+
+outcome_all <-
   HA_road_res %>%
-  mutate(source = "road") %>%
-  bind_rows(HA_air_res %>% mutate(source = "air"))
+  bind_rows(HSD_road_res) %>%
+  bind_rows(HA_air_res) %>%
+  bind_rows(HSD_air_res) %>% 
+  bind_rows(Reading_air_res)
 
 
-HA_all %>%
-  filter(geo_id_macro == 433) %>%
+outcome_all %>%
+  #filter( startsWith(geo_id_macro,"43")) %>%
+  filter(geo_id_macro == 433|geo_id_micro=="Darmstadt"|geo_id_micro=="Frankfurt am Main"|geo_id_micro=="Offenbach am Main") %>% 
   ggplot(aes(x = source, fill = geo_id_micro, y = impact)) +
+  guides(fill = guide_legend(title = "Kommune")) +
   geom_col() +
-  labs(title = "Verteilung Menschen mit durch Straßen/FLuglärm bedingten hohen Lärmbelästigung im Kreis Groß Gerau")
-ggsave("plots/HA_FlugStraße_KreisGG.png")
+  facet_grid(geo_id_macro ~ outcome) +
+  labs(title = "Verteilung DALY durch Straßen/Fluglärm-bedingte hohe Lärmbelästigung im Kreis Groß Gerau",
+       x = "Lärmquelle", y = "Attributable Krankheitslast [DALY]")
 
+ggsave("plots/HA_FlugStraße_KreisGG.png")
 
 
 ############################ Hier wirds wild; noch nicht abgeschlossenes Automatisierungstesten...
