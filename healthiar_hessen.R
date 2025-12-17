@@ -1,4 +1,6 @@
 rm(list = ls())
+# library(remotes)
+# remotes::install_github(repo = "SwissTPH/healthiar", build_vignettes = TRUE)
 
 library(tidyverse)
 library(healthiar)
@@ -34,7 +36,19 @@ dat_ind <- read_excel(
   n_max = 6
 )
 
-
+## Gemeinde und Kreisnamen laden
+kreise_daten <- read_delim(
+  "./data/bundesweit/kreise_daten.csv",
+  delim = ";",
+  escape_double = FALSE,
+  trim_ws = TRUE
+)
+gemeinden_daten <- read_delim(
+  "data/bundesweit/gemeinden_daten.csv",
+  delim = ";",
+  escape_double = FALSE,
+  trim_ws = TRUE
+)
 
 ## Expositionsdaten schön machen
 
@@ -65,16 +79,23 @@ lang_machen <- function(data, welche_exp) {
 #use the source names as indicated in the ERF-Database
 dat_l <- lang_machen(dat_str, "road") %>%
   bind_rows(lang_machen(dat_flug, "air")) %>%
-  bind_rows(lang_machen(dat_ind, "industry"))
+  bind_rows(lang_machen(dat_ind, "industry")) %>%
+  left_join(
+    kreise_daten %>%
+      filter(Bundesland_Code == "06") %>% #hier nur Hessen
+      select(Kreis_Code, Kreis_Name) %>%
+      rename(kreis = Kreis_Code, name_kreis = Kreis_Name),
+    by = "kreis"
+  )
 
 # Funktion zur Berechnung der Gesundheitsauswirkungen für eine Expositions-ERF-Kombination
-calc_geo_ar_impact <- function(dat) {
+calc_kreis_ar_impact <- function(dat) {
   ifelse(dat %>%
            select(risk_type, threshold, ERF) %>%
            unique() %>%
            nrow() > 1,
          stop(
-           "Function calc_geo_ar_impact expects a data frame with a single ERF function!"
+           "Function calc_kreis_ar_impact expects a data frame with a single ERF function!"
          ),
          NA)
   dat %>%
@@ -86,7 +107,7 @@ calc_geo_ar_impact <- function(dat) {
         cutoff_central = first(.$threshold),
         erf_eq_central = first(.$ERF),
         geo_id_micro = .$name_stadt_gemeinde,
-        geo_id_macro = .$kreis,
+        geo_id_macro = .$name_kreis,
         dw_central = .$DW,
         duration_central = 1
       )
@@ -100,28 +121,29 @@ calc_geo_ar_impact <- function(dat) {
     )
 }
 
-
-
-
 ################### Visualisierungen der Expositionsdaten
+
+dir.create("plots", showWarnings = F)
 
 #Übersicht Exposition nach Kreis und Quelle
 dat_l %>%
-  ggplot(aes(x = L_central, y = population, fill = kreis)) +
+  ggplot(aes(x = L_Untergrenze, y = population, fill = name_kreis)) +
   geom_col() +
-  facet_grid(source ~ metric) +
+  facet_grid(metric ~ source) +
   labs(title = "Lärmbelastung in Hessen nach Kreisen, Quelle und Lärmmetrik", x =
-         "Lärmpegel in dB", y = "Anzahl exponierter Personen")
+         "Lärmpegel in dB", y = "Anzahl exponierter Personen") +
+  guides(fill = guide_legend(title = "Kreis"))
 ggsave("plots/exposition_hessen.png")
 
 #Übersicht Exposition im Kreis GG
 dat_l %>%
-  filter(kreis == "433") %>%
-  ggplot(aes(x = L_central, y = population, fill = name_stadt_gemeinde)) +
-  geom_col() +
-  facet_grid(source ~ metric) +
-  labs(title = "Lärmbelastung in Groß Gerau nach Kommunen, Quelle und Lärmmetrik", x =
-         "Lärmpegel in dB", y = "Anzahl exponierter Personen")
+  filter(name_kreis == "Groß-Gerau") %>%
+  ggplot(aes(x = L_Untergrenze, y = population, fill = name_stadt_gemeinde)) +
+  geom_col(just = 0) +
+  facet_grid(metric ~ source) +
+  labs(title = "Lärmbelastung im Kreis Groß Gerau nach Kommunen, Quelle und Lärmmetrik", x =
+         "Lärmpegel in dB", y = "Anzahl exponierter Personen") +
+  guides(fill = guide_legend(title = "Kommune"))
 ggsave("plots/exposition_Kreis GG.png")
 
 ################### *händisches* Berechnen
@@ -149,7 +171,7 @@ HA_road_res <- dat_exp_ERF %>%
   # .$ERF %>%
   # as.character()%>%
   {
-    calc_geo_ar_impact(.)
+    calc_kreis_ar_impact(.)
   }
 #Berechnung der Gesundheitsauswirkungen für Straßenlärm und hohe Schlafstörung
 HSD_road_res <- dat_exp_ERF %>%
@@ -160,7 +182,7 @@ HSD_road_res <- dat_exp_ERF %>%
   # .$ERF %>%
   # as.character()%>%
   {
-    calc_geo_ar_impact(.)
+    calc_kreis_ar_impact(.)
   }
 
 
@@ -173,7 +195,7 @@ HA_air_res <- dat_exp_ERF %>%
   # .$ERF %>%
   # as.character()%>%
   {
-    calc_geo_ar_impact(.)
+    calc_kreis_ar_impact(.)
   }
 
 #HSD Fluglärm
@@ -185,7 +207,7 @@ HSD_air_res <- dat_exp_ERF %>%
   # .$ERF %>%
   # as.character()%>%
   {
-    calc_geo_ar_impact(.)
+    calc_kreis_ar_impact(.)
   }
 
 # Reading comprehension - Fluglärm
@@ -197,7 +219,7 @@ Reading_air_res <- dat_exp_ERF %>%
   # .$ERF %>%
   # as.character()%>%
   {
-    calc_geo_ar_impact(.)
+    calc_kreis_ar_impact(.)
   }
 
 
@@ -207,11 +229,11 @@ Reading_air_res <- dat_exp_ERF %>%
 #Kreis GG: 433
 #Aufteilung HA Straßenlärm im Kreis GG
 HA_road_res %>%
-  filter(geo_id_macro == 433) %>%
+  filter(geo_id_macro == "Groß-Gerau") %>%
   ggplot(aes(x = "", fill = geo_id_micro, y = impact)) +
   geom_col() +
   coord_polar(theta = "y") +
-  labs(title = "Verteilung DALY durch Straßenlärm bedingten hohen Lärmbelästigung im Kreis Groß Gerau")
+  labs(title = "Verteilung DALY durch Straßenlärm-bedingte hohe Lärmbelästigung im Kreis Groß Gerau")
 ggsave("plots/HA_road_KreisGG.png")
 
 
@@ -219,21 +241,28 @@ outcome_all <-
   HA_road_res %>%
   bind_rows(HSD_road_res) %>%
   bind_rows(HA_air_res) %>%
-  bind_rows(HSD_air_res) %>% 
+  bind_rows(HSD_air_res) %>%
   bind_rows(Reading_air_res)
 
+str_detect(outcome_all$geo_id_macro[1], "Groß-Gerau" | "Frankfurt")
 
+kagzrm_kreise <- c("Darmstadt-Dieburg",
+                   "Groß-Gerau",
+                   "Main-Taunus-Kreis",
+                   "Offenbach")
+kagzrm_gemeinden <- scan("data/kagzrm_gemeinden.txt", what = "character", sep = "\r")
+
+outcome_all$geo_id_macro %>% unique()
 outcome_all %>%
   #filter( startsWith(geo_id_macro,"43")) %>%
-  filter(geo_id_macro == 433|geo_id_micro=="Darmstadt"|geo_id_micro=="Frankfurt am Main"|geo_id_micro=="Offenbach am Main") %>% 
-  ggplot(aes(x = source, fill = geo_id_micro, y = impact)) +
-  guides(fill = guide_legend(title = "Kommune")) +
+  filter(geo_id_macro %in% kagzrm_kreise) %>%
+  ggplot(aes(x = source, fill = geo_id_macro, y = impact)) +
+  guides(fill = guide_legend(title = "Kreis")) +
   geom_col() +
-  facet_grid(geo_id_macro ~ outcome) +
-  labs(title = "Verteilung DALY durch Straßen/Fluglärm-bedingte hohe Lärmbelästigung im Kreis Groß Gerau",
-       x = "Lärmquelle", y = "Attributable Krankheitslast [DALY]")
+  facet_grid(. ~ outcome) +
+  labs(title = "Verteilung DALY durch einige Straßen/Fluglärm-bedingte Gesundheitsauswirkungen für die Kreise der KAGZRM", x = "Lärmquelle", y = "Attributable Krankheitslast [DALY]")
 
-ggsave("plots/HA_FlugStraße_KreisGG.png")
+ggsave("plots/DALY_FlugStraße_KreiseKAGZRM.png")
 
 
 ############################ Hier wirds wild; noch nicht abgeschlossenes Automatisierungstesten...
@@ -305,7 +334,7 @@ bla %>% reframe(
   population_exposed = sum(population),
   Anz_Expositionsbänder = n(),
   fkt = first(ERF),
-  erg = calc_geo_ar_impact(.)
+  erg = calc_kreis_ar_impact(.)
 )
 length(bla)
 bla[[2]] %>%
