@@ -19,22 +19,47 @@ functionsETCHE <- read_excel("data/functionsETCHE.xlsx") %>%
 dat_str <- read_excel(
   "data/ULK2022StatistikGesamt_20240704.xlsx",
   sheet = "Straßenlärm",
-  skip = 1,
-  n_max = 426
+  skip = 2,
+  n_max = 425,
+  col_names = read_lines("data/ColNamesStr_ULK2022StatistikGesamt_20240704.txt")
 )
+
+# dat_str %>% names() %>% 
+#   write_lines("data/ColNamesStr_ULK2022StatistikGesamt_20240704.txt")
+
+
+dat_str_BW <- read_excel(
+  "data/andere BL/BW_Belastungsstatistik_2022.xlsx",
+  sheet = "Hauptverkehrsstraßen",
+  skip = 4,
+  n_max = 779,
+  col_names = read_lines("data/andere BL/ColNamesStr_BW_Belastungsstatistik_2022.txt")
+  )
+
 dat_flug <- read_excel(
   "data/ULK2022StatistikGesamt_20240704.xlsx",
   sheet = "Fluglärm",
   skip = 1,
-  n_max = 35
+  n_max = 35,
+  col_names = read_lines("data/ColNamesFlug_ULK2022StatistikGesamt_20240704.txt")
 )
+
+dat_flug_BW <- read_excel(
+  "data/andere BL/BW_Belastungsstatistik_2022.xlsx",
+  sheet = "Flughafen Stuttgart",
+  skip = 4,
+  n_max = 10,
+  col_names = read_lines("data/andere BL/ColNamesFlug_BW_Belastungsstatistik_2022.txt")
+)
+
 
 dat_ind <- read_excel(
   "data/ULK2022StatistikGesamt_20240704.xlsx",
   sheet = "Industrielärm",
   skip = 1,
   n_max = 6
-)
+) %>%
+  janitor::clean_names()
 
 ## Gemeinde und Kreisnamen laden
 kreise_daten <- read_delim(
@@ -54,7 +79,6 @@ gemeinden_daten <- read_delim(
 
 lang_machen <- function(data, welche_exp) {
   data %>%
-    janitor::clean_names() %>%
     select(contains("gemeinde") | contains("belasteter")) %>%
     setNames(str_replace(names(.), "_bis_[0-9]*", "")) %>%
     pivot_longer(
