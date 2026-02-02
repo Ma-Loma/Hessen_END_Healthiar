@@ -94,26 +94,23 @@ lang_machen <- function(data) {
       l_central = l_untergrenze + 2,
       .keep = "unused"
     ) %>%
-    mutate(
-      kreis = str_sub(
-        gemeinde_kennziffer,
-        start = geoschluessel_stellen - 5L,
-        end = geoschluessel_stellen - 3L
-      )
-    ) %>%
     mutate(metric = str_remove(metric, "anzahl_belasteter_")) %>%
-    # mutate(metric = str_replace_all(metric, "l_night", "lnight")) %>%
-    # pivot_wider(names_from = metric, values_from = exponierte) %>%
-    replace_na(list(exponierte = 0))
+    replace_na(list(exponierte = 0)) #%>% 
+    # mutate(gemeinde_kennziffer=
+    #          gemeinde_kennziffer %>% 
+    #          str_sub(
+    #            start=geoschluessel_stellen - 5L,
+    #          ))
 }
+
 
 for (i in 1:nrow(meta)) {
   metadatazeile <- meta[i, ]
   cat("Lese ",paste(metadatazeile),", Sheet",metadatazeile$tabellenblatt,"....\n")
-  ds <- read_one_dataset(metadatazeile) 
+  ds <- read_one_dataset(metadatazeile) %>% 
+    mutate(gemeinde_kennziffer=as.character(gemeinde_kennziffer))
   cat("Habe",nrow(ds)," Zeilen gelesen.")
   ds<-ds %>%
-    mutate(gemeinde_kennziffer=as.numeric(gemeinde_kennziffer)) %>% 
     lang_machen() %>%
     mutate(
       bundesland_code        = metadatazeile$bundesland_code,
@@ -130,7 +127,23 @@ for (i in 1:nrow(meta)) {
   }
   
 }
+```
 
+## Geocode vereinheitlichen
+
+```{r}
+gkz_vereinheitlichen <- function(data) {
+  data %>%
+      mutate(
+      gemeinde_kennziffer_kompl = str_sub(
+        gemeinde_kennziffer,
+        start = geoschluessel_stellen - 5L
+      ) %>% 
+        paste0(bundesland_code,.)
+    )
+}
+bla<-data %>% 
+  gkz_vereinheitlichen()
 
 ```
 
@@ -142,7 +155,7 @@ Hier eine Statistik
 
 anzahl_expositionen<-data %>% 
   group_by(name_stadt_gemeinde,quelle, kartierungsumfang, metric) %>% 
-  summarise(total_exponierte = sum(exponierte),n=n())
+  summarise(total_exponierte = sum(exponierte),Anzahl_Pegelbaender=n())
 
 anzahl_expositionen %>%
   ungroup() %>% 
