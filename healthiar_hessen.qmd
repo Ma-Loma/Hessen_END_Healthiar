@@ -50,19 +50,19 @@ functionsETCHE <- read_excel("data/ETCHE/functionsETCHE.xlsx") %>%
 
 # HLNUG-Expositionsdaten laden
 dat_str <- read_excel(
-  "data/ULK2022StatistikGesamt_20240704.xlsx",
+  "data/Expositionsdaten/HE_ULK2022StatistikGesamt_20240704.xlsx",
   sheet = "Straßenlärm",
   skip = 1,
   n_max = 426
 )
 dat_flug <- read_excel(
-  "data/ULK2022StatistikGesamt_20240704.xlsx",
+  "data/Expositionsdaten/HE_ULK2022StatistikGesamt_20240704.xlsx",
   sheet = "Fluglärm",
   skip = 1,
   n_max = 35
 )
 dat_ind <- read_excel(
-  "data/ULK2022StatistikGesamt_20240704.xlsx",
+  "data/Expositionsdaten/HE_ULK2022StatistikGesamt_20240704.xlsx",
   sheet = "Industrielärm",
   skip = 1,
   n_max = 6
@@ -70,13 +70,13 @@ dat_ind <- read_excel(
 
 # Gemeinde- und Kreisnamen laden
 kreise_daten <- read_delim(
-  "./data/bundesweit/kreise_daten.csv",
+  "./data/Gebietstabellen/kreise_daten.csv",
   delim = ";",
   escape_double = FALSE,
   trim_ws = TRUE
 )
 gemeinden_daten <- read_delim(
-  "data/bundesweit/gemeinden_daten.csv",
+  "data/Gebietstabellen/gemeinden_daten.csv",
   delim = ";",
   escape_double = FALSE,
   trim_ws = TRUE

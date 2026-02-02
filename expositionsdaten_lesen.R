@@ -6,11 +6,16 @@ library(readxl)
 library(janitor)
 #library(purrr)
 
-read_metadata <- function(path) {
-  readxl::read_excel(path) |>
-    dplyr::mutate(quelle = factor(quelle),
-                  kartierungsumfang = factor(kartierungsumfang))
-}
+
+meta <-
+  read_delim(
+    "data/Expositionsdaten/MetadatenExpositionsdaten.csv",
+    delim = ";",
+    escape_double = FALSE,
+    trim_ws = TRUE
+  ) |>
+  dplyr::mutate(quelle = factor(quelle),
+                kartierungsumfang = factor(kartierungsumfang))
 
 read_colnames <- function(path) {
   readr::read_csv(path, col_names = FALSE, show_col_types = FALSE) |>
@@ -59,10 +64,6 @@ lang_machen <- function(data) {
     replace_na(list(exponierte = 0))
 }
 
-meta<-
-  "./data/MetadatenExpositionsdaten.xlsx" %>%
-  read_metadata()
-
 for (i in 1:nrow(meta)) {
   metadatazeile <- meta[i, ]
   cat("Lese ",paste(metadatazeile),", Sheet",metadatazeile$tabellenblatt,"....\n")
@@ -72,7 +73,7 @@ for (i in 1:nrow(meta)) {
     mutate(gemeinde_kennziffer=as.numeric(gemeinde_kennziffer)) %>% 
     lang_machen() %>%
     mutate(
-      bl_id        = metadatazeile$bl_id,
+      bundesland_code        = metadatazeile$bundesland_code,
       quelle            = metadatazeile$quelle,
       kartierungsumfang = metadatazeile$kartierungsumfang
     )

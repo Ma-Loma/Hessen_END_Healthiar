@@ -1,0 +1,11 @@
+Feldname	Erklärung
+bundesland_code	Zweistellige Zahl zwischen 01 und 16
+quelle	Welche Lärmart
+kartierungsumfang	MAJOR oder MINOR
+pfad	
+tabellenblatt	
+spaltennamen	
+zeilen_weglassen	
+zeilen_gesamt	
+datensatz_id	
+geoschluessel_stellen	aus wie vielen Ziffern besteht der Geoschlüssel? Also AGS oder GKZ.
