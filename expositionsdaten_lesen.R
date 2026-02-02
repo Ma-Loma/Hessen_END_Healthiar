@@ -1,12 +1,10 @@
 rm(list = ls())
-# library(remotes)
-# remotes::install_github(repo = "SwissTPH/healthiar", build_vignettes = TRUE)
 
 library(tidyverse)
-library(healthiar)
+#library(healthiar)
 library(readxl)
 library(janitor)
-library(purrr)
+#library(purrr)
 
 read_metadata <- function(path) {
   readxl::read_excel(path) |>
@@ -21,7 +19,6 @@ read_colnames <- function(path) {
 
 read_one_dataset <- function(meta_row) {
   col_names <- read_colnames(meta_row$spaltennamen)
-  
   readxl::read_excel(
     path  = meta_row$pfad,
     sheet = meta_row$tabellenblatt,
@@ -70,7 +67,7 @@ for (i in 1:nrow(meta)) {
   metadatazeile <- meta[i, ]
   cat("Lese ",paste(metadatazeile),", Sheet",metadatazeile$tabellenblatt,"....\n")
   ds <- read_one_dataset(metadatazeile) 
-  cat(" habe",nrow(ds)," Zeilen gelesen")
+  cat("Habe",nrow(ds)," Zeilen gelesen.")
   ds<-ds %>%
     mutate(gemeinde_kennziffer=as.numeric(gemeinde_kennziffer)) %>% 
     lang_machen() %>%
@@ -79,13 +76,15 @@ for (i in 1:nrow(meta)) {
       quelle            = metadatazeile$quelle,
       kartierungsumfang = metadatazeile$kartierungsumfang
     )
-  cat("... ins lange Format formatiert")
+  cat("... und56 ins lange Format formatiert.\n")
   if (i == 1) {
     data <- ds
+    cat(" dataframe namens data geschaffen; hat",nrow(data),"Zeilen.\n")
   } else {
     data <- bind_rows(data, ds)
+    cat(" und angehängt. Insgesamt sind es jetzt",nrow(data),"Zeilen.\n")
   }
-  cat(" und angehängt. Insgesamt sind es jetzt",nrow(data),"Zeilen.\n")
+  
 }
 
 

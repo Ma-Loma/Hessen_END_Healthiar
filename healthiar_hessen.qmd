@@ -23,6 +23,10 @@ format:
 ```{r setup, include=FALSE}
 # Bibliotheken laden
 rm(list = ls())
+#falls aktuellster healthiar gewünscht; diese Lade-Methode funkioniert u.U. nicht auf allen Rechnern
+# library(remotes)
+# remotes::install_github(repo = "SwissTPH/healthiar", build_vignettes = TRUE)
+# hier Standardmethode
 library(tidyverse)
 library(healthiar)
 library(readxl)
