@@ -42,7 +42,7 @@ Dieses Dokument analysiert die Lärmbelastung in Hessen und berechnet die damit 
 ETCHE-, HLNUG- sowie Destatis Daten laden.
 ```{r load-data}
 # ETCHE Input laden
-functionsETCHE <- read_excel("data/functionsETCHE.xlsx") %>%
+functionsETCHE <- read_excel("data/ETCHE/functionsETCHE.xlsx") %>%
   mutate(
     ERF = str_replace_all(ERF, "threshold", as.character(threshold)),
     DW = as.numeric(DW)

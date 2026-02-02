@@ -1,0 +1,9 @@
+bl_id;quelle;kartierungsumfang;agglomeration;pfad;tabellenblatt;spaltennamen;zeilen_weglassen;zeilen_gesamt;geoschluessel_stellen
+06;Straﬂe;all;agglomeration;data/ULK2022StatistikGesamt_20240704.xlsx;Straﬂenl‰rm;data/ColNamesStr_ULK2022StatistikGesamt_20240704.txt;2;6;6
+06;Straﬂe;major;outside;data/ULK2022StatistikGesamt_20240704.xlsx;Straﬂenl‰rm;data/ColNamesStr_ULK2022StatistikGesamt_20240704.txt;8;419;6
+06;Flug;major;agglomeration;data/ULK2022StatistikGesamt_20240704.xlsx;Flugl‰rm;data/ColNamesFlug_ULK2022StatistikGesamt_20240704.txt;2;6;6
+06;Flug;major;outside;data/ULK2022StatistikGesamt_20240704.xlsx;Flugl‰rm;data/ColNamesFlug_ULK2022StatistikGesamt_20240704.txt;8;27;6
+06;Industrie;major;agglomeration;data/ULK2022StatistikGesamt_20240704.xlsx;Industriel‰rm;data/ColNamesInd_ULK2022StatistikGesamt_20240704.txt;2;6;6
+08;Straﬂe;major;outside;data/andere BL/BW_Belastungsstatistik_2022.xlsx;Hauptverkehrsstraﬂen;data/andere BL/ColNamesStr_BW_Belastungsstatistik_2022.txt;4;779;7
+08;Flug;major;both;data/andere BL/BW_Belastungsstatistik_2022.xlsx;Flughafen Stuttgart;data/andere BL/ColNamesFlug_BW_Belastungsstatistik_2022.txt;4;10;7
+03;Straﬂe;major;outside;data/andere BL/NS_2024-10-25_END422_Statistiken_Gemeinden_Ergebnisblatt_V4.xlsx;Tabelle1;data/andere BL/ColNamesInd_NS_2024-10-25_END422_Statistiken_Gemeinden_Ergebnisblatt_V4.txt;5;542;8
