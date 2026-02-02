@@ -3,4 +3,6 @@
 .RData
 .Ruserdata
 *.Rproj
-*.png
+#*.png
+# Ergebnisse eines Seitenprojektes
+*KAGZRM*
