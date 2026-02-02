@@ -5,10 +5,7 @@ format: pptx
 editor: visual
 ---
 
-
-
-markdown
-Kopieren
+markdown Kopieren
 
 ---
 title: "Healthiar Hessen: Lärmbelastung und Gesundheitsauswirkungen"
@@ -34,12 +31,14 @@ library(janitor)
 library(purrr)
 ```
 
-
 ## Einführung
+
 Dieses Dokument analysiert die Lärmbelastung in Hessen und berechnet die damit verbundenen Gesundheitsauswirkungen. Die Analyse basiert auf Daten des HLNUG und ETCHE-Funktionen.
 
 ## Daten laden und vorbereiten
+
 ETCHE-, HLNUG- sowie Destatis Daten laden.
+
 ```{r load-data}
 # ETCHE Input laden
 functionsETCHE <- read_excel("data/ETCHE/functionsETCHE.xlsx") %>%
@@ -82,7 +81,6 @@ gemeinden_daten <- read_delim(
   trim_ws = TRUE
 )
 ```
-
 
 ## Expositionsdaten aufbereiten
 
@@ -127,9 +125,8 @@ dat_l <- lang_machen(dat_str, "road") %>%
   )
 ```
 
-
-
 ## Gesundheitsauswirkungen berechnen
+
 Funktion zur Berechnung der Gesundheitsauswirkungen
 
 ```{r calc-health-impacts}
@@ -207,9 +204,10 @@ Reading_air_res <- dat_exp_ERF %>%
 ```
 
 ## Visualisierungen
+
 Lärmbelastung in Hessen nach Kreisen
 
-```{r plot-exposure-hessen}  
+```{r plot-exposure-hessen}
 dir.create("plots", showWarnings = F)
 
 dat_l %>%
@@ -225,9 +223,9 @@ dat_l %>%
 ggsave("plots/exposition_hessen.png", width = 12, height = 8)
 ```
 
-
 ## Gesundheitsauswirkungen im Kreis Groß-Gerau
-```{r plot-exposure-kreis-gg}  
+
+```{r plot-exposure-kreis-gg}
 outcome_all <- HA_road_res %>%
   bind_rows(HSD_road_res) %>%
   bind_rows(HA_air_res) %>%
@@ -249,5 +247,3 @@ outcome_all %>%
   guides(fill = guide_legend(title = "Kreis"))
 ggsave("plots/DALY_FlugStraße_KreiseKAGZRM.png", width = 12, height = 8)
 ```
-
-
