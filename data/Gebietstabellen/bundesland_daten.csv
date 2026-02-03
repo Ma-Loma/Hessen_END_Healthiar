@@ -1,17 +1,17 @@
 bundesland_nummer;bundesland_code;bundesland_name
-1;1;Schleswig-Holstein
-2;2;Freie und Hansestadt Hamburg
-3;3;Niedersachsen
-4;4;Freie Hansestadt Bremen
-5;5;Nordrhein-Westfalen
-6;6;Hessen
-7;7;Rheinland-Pfalz
-8;8;Baden-Württemberg
-9;9;Freistaat Bayern
+1;01;Schleswig-Holstein
+2;02;Freie und Hansestadt Hamburg
+3;03;Niedersachsen
+4;04;Freie Hansestadt Bremen
+5;05;Nordrhein-Westfalen
+6;06;Hessen
+7;07;Rheinland-Pfalz
+8;08;Baden-WÃ¼rttemberg
+9;09;Freistaat Bayern
 10;10;Saarland
 11;11;Berlin
 12;12;Brandenburg
 13;13;Mecklenburg-Vorpommern
 14;14;Freistaat Sachsen
 15;15;Sachsen-Anhalt
-16;16;Freistaat Thüringen
+16;16;Freistaat ThÃ¼ringen

@@ -13,6 +13,7 @@ rm(list = ls())
 library(tidyverse)
 library(readxl)
 library(flextable)
+library(sf)
 
 ```
 
@@ -22,13 +23,21 @@ Lärmexpositionsdaten werden häufig als Exceltabellen z.B. von Landes- oder Bun
 
 ## Vorliegende Dateien
 
-Metadatentabelle mit flextable:
+In der Datei
+
+```{r metadatentabelle}
+
+pfad_metadaten<-"data/Expositionsdaten/MetadatenExpositionsdaten.csv"
+pfad_metadaten
+```
+
+liegt die manuell zu pflegende Metadatentabelle. Der Inhalt wird hier eingelesen
 
 ```{r lese_metadaten}
 
 meta <-
   read_delim(
-    "data/Expositionsdaten/MetadatenExpositionsdaten.csv",
+    pfad_metadaten,
     delim = ";",
     escape_double = FALSE,
     trim_ws = TRUE
@@ -43,9 +52,9 @@ read_colnames <- function(path) {
 
 ```
 
-In der @tbl-metadaten liegen die Metadaten.
+und in @tbl-metadaten dargestellt.
 
-```{r metadatentablee}
+```{r metadatentabelle}
 #| label: tbl-metadaten
 #| tbl-cap: "Die Metadaten, mit Hilfe derer die Expositionsdaten eingelesen werden"
 #| tbl-colwidths: [60,40]
@@ -61,7 +70,7 @@ meta %>%
 
 ## Verarbeitung
 
-Mit diesen Metadaten wird alles eingelesen und gleich in ein gut weiterverarbeitbares "long format" transformiert.
+Entlang dieser Metadaten werden nun die Rohdaten eingelesen, gefiltert und gleich in ein gut weiterverarbeitbares "long format" transformiert.
 
 ```{r einlesen_verarbeiten}
 
@@ -86,15 +95,15 @@ lang_machen <- function(data) {
     pivot_longer(
       starts_with("anzahl"),
       names_sep = "_ab_",
-      names_to = c("metric", "l_untergrenze"),
+      names_to = c("metrik", "l_untergrenze"),
       values_to = "exponierte"
     ) %>%
     mutate(
       l_untergrenze = as.numeric(l_untergrenze),
-      l_central = l_untergrenze + 2,
+      l_zentral = l_untergrenze + 2,
       .keep = "unused"
     ) %>%
-    mutate(metric = str_remove(metric, "anzahl_belasteter_")) %>%
+    mutate(metrik = str_remove(metrik, "anzahl_belasteter_")) %>%
     replace_na(list(exponierte = 0)) #%>% 
     # mutate(gemeinde_kennziffer=
     #          gemeinde_kennziffer %>% 
@@ -131,21 +140,162 @@ for (i in 1:nrow(meta)) {
 
 ## Geocode vereinheitlichen
 
-```{r}
+Bislang haben die gemeinde_kennziffern ein uneinheitliches Format: sie umfassen entweder 0, 1 oder führende Ziffern, die das Bundesland codieren.
+
+```{r GKZdarstellen}
+bundesland_daten <- read_delim("data/Gebietstabellen/bundesland_daten.csv", 
+    delim = ";", escape_double = FALSE, col_types = cols(bundesland_code = col_character()), 
+    trim_ws = TRUE)
+bundesland_daten%>% 
+  knitr::kable()
+
+```
+
+Hier wird sie nun vereinheitlicht auf das 8-stellige Format mit dem führenden zweistelligen Bundesland-Code.
+
+```{r GKZvereinheitlichen}
 gkz_vereinheitlichen <- function(data) {
-  data %>%
-      mutate(
-      gemeinde_kennziffer_kompl = str_sub(
-        gemeinde_kennziffer,
-        start = geoschluessel_stellen - 5L
-      ) %>% 
-        paste0(bundesland_code,.)
-    )
+  data %>% 
+  mutate(gemeinde_kennziffer=
+           str_sub(gemeinde_kennziffer,
+                   start = str_length(gemeinde_kennziffer)-5) %>% 
+           paste0(bundesland_code,.))
 }
-bla<-data %>% 
+data<-data %>% 
   gkz_vereinheitlichen()
 
 ```
+
+## Anreichern mit Gemeindeverzeichnis Daten (Destatis)
+
+Die Datei
+
+```{r gv_pfad}
+pfad_gv_datei<-"./data/Gebietstabellen/GV100AD_30112025.txt"
+pfad_gv_datei
+```
+
+liegt in einem "fixed width" Format vor, welches gut maschinen- aber schlecht menschenlesbar ist. Hier werden nur die relevanten Zeile eingelesen,
+
+```{r gv_einlesen}
+gv_gemeinden <- pfad_gv_datei %>%
+  readLines(., encoding = "UTF-8") %>%
+  tibble(
+    satzart               = substr(., 1, 2),
+    gemeinde_kennziffer   = substr(., 11, 18),
+    gemeinde_bezeichnung   = substr(., 23, 72),
+    bevoelkerung      = substr(., 140, 150) %>% as.numeric(),
+    flaeche = substr(., 129, 139) %>% as.numeric()
+  ) %>% 
+  filter(satzart == "60") %>%
+  select(-.,-satzart)
+
+```
+
+und die Felder "gemeinde_kennziffer, gemeinde_bezeichnung, bevoelkerung" extrahiert.
+Ein Auszug daraus findet sich in @tbl-gemeindeverzeichnis.
+
+```{r}
+#| label: tbl-gemeindeverzeichnis
+#| tbl-cap: "Ein Auszug aus dem so gewonnenen Gemeindeverzeichnis"
+#| tbl-colwidths: [60,40]
+gv_gemeinden %>% 
+  slice_sample(n=5) %>%
+  knitr::kable()
+```
+
+Die so gewonnenen Gemeindedaten werden nun an die Expositionsdaten angehängt.
+
+```{r gemeindedaten_anhaengen}
+data <- data %>%
+  left_join(gv_gemeinden, by = "gemeinde_kennziffer")
+
+```
+
+## GIS-Übersicht
+
+Ich lade hier die [GIS-Daten der Gemeinden](https://daten.gdz.bkg.bund.de/produkte/vg/vg250_ebenen_0101/aktuell/vg250_01-01.utm32s.gpkg.ebenen.zip) des Bundesamts für Kartographie und Geodäsie (BKG) herunter und extrahiere daraus alle deutschen Gemeindegrenzen.
+
+```{r vg250_laden}
+
+vg250 <- st_read("./data/GISDaten/DE_VG250.gpkg") %>% 
+  filter(GF==4) %>% # nur Landflächen, nicht Wasserflächen ...
+  #filter(SN_G != "000") %>%
+  mutate(
+    #gemeinde_kennziffer = paste0(SN_L,SN_R,SN_K,SN_V1,SN_V2)
+    gemeinde_kennziffer = paste0(str_sub(SDV_ARS,1,5),str_sub(SDV_ARS,-3))
+    # gemeinde_kennziffer = paste0(
+    #   str_pad(SN_L, 2, pad = "0"),
+    #   str_pad(SN_R, 1, pad = "0"),
+    #   str_pad(SN_K, 2, pad = "0"),
+    #   str_pad(SN_V2, 3, pad = "0"))
+  )%>%
+  group_by(gemeinde_kennziffer) %>%
+  summarise(
+    GEN = first(GEN),
+    .groups = "drop"
+  )
+
+ggplot(vg250) +
+  geom_sf(aes(geometry=geom), fill = "grey")
+
+
+stopifnot(all(nchar(vg250$gemeinde_kennziffer) == 8))
+
+bla<-vg250 %>% 
+  st_drop_geometry()
+```
+
+```{r gis_visualisierung_vg250}
+blubb <- vg250 %>%
+  left_join(gv_gemeinden, by = "gemeinde_kennziffer")
+
+blubb %>%
+  ggplot() +
+  geom_sf(aes(fill = bevoelkerung/flaeche,geometry=geom), color = NA) +
+  scale_fill_viridis_c(option="A",direction = -1) +
+  theme_minimal()
+
+```
+
+
+## Expositionsdaten räumlich visualisieren
+
+```{r gis_expositionsdaten_visualisieren}
+
+
+# Gibt es Dubletten?
+blubb %>%
+  st_drop_geometry() %>%
+  count(gemeinde_kennziffer) %>%
+  filter(n > 1)
+
+
+data_sf <- data  %>%
+  group_by(gemeinde_kennziffer,quelle,metrik,kartierungsumfang) %>%
+  summarise(
+    name_stadt_gemeinde = first(name_stadt_gemeinde),
+    bevoelkerung = max(bevoelkerung, na.rm = FALSE),
+    belastete = sum(exponierte)
+  ) %>%
+  left_join(vg250, by = "gemeinde_kennziffer",relationship = "many-to-many") %>%
+  mutate(GEN = coalesce(name_stadt_gemeinde, GEN))
+```
+
+```{r gis_expositionsdaten_plotten}
+
+ggplot(data_sf) +
+  geom_sf(aes(fill = belastete/bevoelkerung,geometry=geom), color = NA) +
+  scale_fill_viridis_c(na.value = "grey90") +
+  theme_minimal()+facet_grid(cols=vars(quelle,kartierungsumfang),rows=vars(metrik))
+
+
+
+data_sf %>% 
+  select(gemeinde_kennziffer,GEN,bevoelkerung,belastete)
+
+```
+
 
 ## Statistiken über eingelesene Daten
 
@@ -154,7 +304,7 @@ Hier eine Statistik
 ```{r statistiken}
 
 anzahl_expositionen<-data %>% 
-  group_by(name_stadt_gemeinde,quelle, kartierungsumfang, metric) %>% 
+  group_by(name_stadt_gemeinde,quelle, kartierungsumfang, metrik) %>% 
   summarise(total_exponierte = sum(exponierte),Anzahl_Pegelbaender=n())
 
 anzahl_expositionen %>%
