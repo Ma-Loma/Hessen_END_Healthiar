@@ -5,5 +5,5 @@ Im zweiten Schritt werden dann in *healthiar_hessen.qmd* die Daten mithilfe des 
 weiterverarbeitet.
 
 ## Beteiligte
-Matthias Lochmann
-Karl-Philipp Walsch
+Matthias Lochmann (HLNUG)
+Karl-Philipp Walsch (UBA)
