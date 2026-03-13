@@ -238,11 +238,56 @@ gv_gemeinden %>%
 ```
 
 Die so gewonnenen Gemeindedaten werden nun an die Expositionsdaten angehängt.
+Für den Teil, in dem schon die Gemeindekennziffer existiert ist dies einfach
 
 ```{r gemeindedaten_anhaengen}
-data <- data %>%
+dataMitGKZ <- data %>%
+  filter(datenquelle != "EEA") %>% 
   left_join(gv_gemeinden, by = "gemeinde_kennziffer")
 
+```
+
+Für den Teil ohne Gemeindekennziffer muss zunächst der Gemeindename einheitlich gepflegt werden
+
+```{r gemeindedaten_ohne_GKZ}
+ersetzungen <-
+  c(
+    "oe" = "ö",
+    "ae" = "ä",
+    "ue" = "ü",
+    "on the Main" = "am Main",
+    "on the Ruhr" = "an der Ruhr"
+  )
+uebersetzungen <- c(
+  "Brunswick" = "Braunschweig",
+  "Cologne" = "Köln",
+  "Freiburg" = "Freiburg im Breisgau",
+  "Halle" = "Halle (Saale)",
+  "Hanover" = "Hannover",
+  "Ludwigshafen" = "Ludwigshafen am Rhein",
+  "Munich" = "München",
+  "Nuremberg" = "Nürnberg",
+  "Oldenburg" = "Oldenburg (Oldb)"
+)
+
+
+dataEEA <- data %>%
+  filter(datenquelle == "EEA") %>%
+  mutate(name_stadt_gemeinde=str_replace_all(name_stadt_gemeinde,ersetzungen)) %>%
+  mutate(name_stadt_gemeinde=str_replace_all(name_stadt_gemeinde,uebersetzungen)) %>%
+  mutate(name_stadt_gemeinde=str_replace_all(name_stadt_gemeinde,"Mörs","Moers"))
+
+deutsch <- gv_gemeinden %>%
+  filter(str_detect(gemeinde_kennzeichnung, "tadt")) %>%
+  mutate(gemeinde_bezeichnung =   #alles was nach dem Komma steht ignorieren
+           str_split_fixed(gemeinde_bezeichnung, ",", 2)[, 1]) %>%
+  mutate(gemeinde_bezeichnung = str_squish(gemeinde_bezeichnung)) %>% 
+  select()
+
+intersect(engl, deutsch)
+setdiff(engl, deutsch)
+
+deutsch
 ```
 
 ## Statistische Übersicht
@@ -281,7 +326,7 @@ Ich lade hier die [GIS-Daten der Gemeinden](https://daten.gdz.bkg.bund.de/produk
 ```{r vg250_laden}
 #st_layers("./data/GISDaten/DE_VG250.gpkg")
 
-vg250 <- st_read("./data/GISDaten/DE_VG250.gpkg", layer = "vg250_gem") %>%
+vg250 <- st_read("./data/Gebietstabellen/DE_VG250.gpkg", layer = "vg250_gem") %>%
   filter(GF == 4) # nur Landflächen, nicht Wasserflächen ...
   #filter(SN_G != "000") %>%
 #  mutate(gemeinde_kennziffer = paste0(str_sub(SDV_ARS, 1, 5), str_sub(SDV_ARS, -3)))
@@ -331,6 +376,7 @@ vg250 %>%
 
 
 data_sf <- data  %>%
+  filter(bundesland_code=="06") %>% 
   group_by(gemeinde_kennziffer,quelle,metrik,kartierungsumfang) %>%
   summarise(
     name_stadt_gemeinde = first(name_stadt_gemeinde),
@@ -347,6 +393,7 @@ ggplot(data_sf) +
   geom_sf(aes(fill = belastete/bevoelkerung,geometry=geom), color = NA) +
   scale_fill_viridis_c(na.value = "grey90") +
   theme_minimal()+facet_grid(cols=vars(quelle,kartierungsumfang),rows=vars(metrik))
+
 
 
 
