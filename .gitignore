@@ -6,7 +6,7 @@
 *~*
 #*.png
 # Geodaten sind nett zum Anzeigen, zum Mitversionieren aber zu groß
-data/GISDaten/
+*gpkg
 
 # Ergebnisse eines Seitenprojektes
 *KAGZRM*png
