@@ -34,82 +34,32 @@ functionsETCHE <- read_excel("data/ETCHE/functionsETCHE.xlsx") %>%
     DW = as.numeric(DW)
   )
 
-# HLNUG-Expositionsdaten laden
-dat_str <- read_excel(
-  "data/Expositionsdaten/HE_ULK2022StatistikGesamt_20240704.xlsx",
-  sheet = "Straßenlärm",
-  skip = 1,
-  n_max = 426
-)
-dat_flug <- read_excel(
-  "data/Expositionsdaten/HE_ULK2022StatistikGesamt_20240704.xlsx",
-  sheet = "Fluglärm",
-  skip = 1,
-  n_max = 35
-)
-dat_ind <- read_excel(
-  "data/Expositionsdaten/HE_ULK2022StatistikGesamt_20240704.xlsx",
-  sheet = "Industrielärm",
-  skip = 1,
-  n_max = 6
+# Gemeinde- und Kreisnamen laden
+gemeinden_daten <- read_delim(
+  "data/Gebietstabellen/sauber/gv_kreis_gemeinden.csv",
+  delim = ";",
+  escape_double = FALSE,
+  trim_ws = TRUE
 )
 
-# Gemeinde- und Kreisnamen laden
-kreise_daten <- read_delim(
-  "./data/Gebietstabellen/kreise_daten.csv",
+allExpo <- read_delim(
+  "data/Expositionsdaten/sauber/allExpo.csv",
   delim = ";",
   escape_double = FALSE,
   trim_ws = TRUE
 )
-gemeinden_daten <- read_delim(
-  "data/Gebietstabellen/gemeinden_daten.csv",
-  delim = ";",
-  escape_double = FALSE,
-  trim_ws = TRUE
-)
+
+
 ```
 
-## Expositionsdaten aufbereiten
+## Expositions- und Gemeindedaten zusammenführen
 
-Möglichst alle Daten sollen im long-format verfügbare sein.
+Hier gibts eine breite Tabelle, sollte später noch mehr Richtung saubere Datenbank gepflegt werden.
 
 ```{r prepare-exposure}
-# Funktion zum Aufbereiten der Expositionsdaten
-lang_machen <- function(data, welche_exp) {
-  data %>%
-    janitor::clean_names() %>%
-    select(contains("gemeinde") | contains("belasteter")) %>%
-    setNames(str_replace(names(.), "_bis_[0-9]*", "")) %>%
-    pivot_longer(
-      starts_with("anzahl"),
-      names_sep = "_ab_",
-      names_to = c("metric", "L_Untergrenze"),
-      values_to = "population"
-    ) %>%
-    mutate(
-      L_Untergrenze = as.numeric(L_Untergrenze),
-      L_central = L_Untergrenze + 2,
-      .keep = "unused"
-    ) %>%
-    mutate(
-      kreis = str_sub(gemeinde_kennziffer, start = 1L, end = 3L),
-      metric = str_remove(metric, "anzahl_belasteter_"),
-      metric = str_replace_all(metric, "l_night", "lnight"),
-      source = welche_exp
-    ) %>%
-    replace_na(list(population = 0))
-}
 
-dat_l <- lang_machen(dat_str, "road") %>%
-  bind_rows(lang_machen(dat_flug, "air")) %>%
-  bind_rows(lang_machen(dat_ind, "industry")) %>%
-  left_join(
-    kreise_daten %>%
-      filter(Bundesland_Code == "06") %>%
-      select(Kreis_Code, Kreis_Name) %>%
-      rename(kreis = Kreis_Code, name_kreis = Kreis_Name),
-    by = "kreis"
-  )
+allExpo_w <- allExpo %>%
+  left_join(gemeinden_daten, by = join_by("gemeinde_kennziffer"))
 ```
 
 ## Gesundheitsauswirkungen berechnen
