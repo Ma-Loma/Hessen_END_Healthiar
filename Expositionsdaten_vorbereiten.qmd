@@ -225,6 +225,22 @@ gv_gemeinden <- pfad_gv_datei %>%
   mutate(gemeinde_bezeichnung = str_squish(gemeinde_bezeichnung)) %>%
   select(-., -satzart)
 
+kreise_daten <- read_delim(
+  "./data/Gebietstabellen/kreise_daten.csv",
+  delim = ";",
+  escape_double = FALSE,
+  trim_ws = TRUE
+) %>% 
+  mutate(bundesland_kreis_code=paste0(Bundesland_Code,
+                                      Kreis_Code))
+
+
+
+gv_gemeinden %>% 
+  mutate(bundesland_kreis_code=str_sub(gemeinde_kennziffer,1,5)) %>% 
+  left_join(kreise_daten,by=join_by("bundesland_kreis_code")) %>% 
+  write_excel_csv2("data/Gebietstabellen/sauber/gv_kreis_gemeinden.csv")
+
 ```
 
 und die Felder "gemeinde_kennziffer, gemeinde_bezeichnung, bevoelkerung" extrahiert. Ein Auszug daraus findet sich in @tbl-gemeindeverzeichnis.
