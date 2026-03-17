@@ -2,19 +2,6 @@
 title: "Krankheitslast durch Umgebungslärm in Hessen"
 author: "Matthias Lochmann"
 format: pptx
-editor: visual
----
-
-markdown Kopieren
-
----
-title: "Healthiar Hessen: Lärmbelastung und Gesundheitsauswirkungen"
-author: "Matthias Lochmann"
-format:
-  html:
-    toc: true
-    code-fold: true
-    code-line-numbers: true
 ---
 
 ```{r setup, include=FALSE}
