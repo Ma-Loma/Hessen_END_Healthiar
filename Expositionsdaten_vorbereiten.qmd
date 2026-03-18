@@ -361,12 +361,14 @@ expoTab <-
     exponierteGesamt = sum(exponierte),
     AnzKartierteGemeinden = n(),
     bevoelkerung = sum(bevoelkerung)
-  ) %>%
+  )  %>%
+  group_by(datenquelle,bundesland_code,quelle,metrik) %>%
   pivot_wider(
     names_from = kartierungsumfang,
     values_from = c(exponierteGesamt, AnzKartierteGemeinden)
   ) %>%
-  ungroup 
+  ungroup
+
 expoTab%>%
   #  complete(bundesland_code, quelle, metrik) %>%
   knitr::kable()
@@ -386,7 +388,7 @@ expoTab %>%
             AnzKartierteGemeinden_major=sum(AnzKartierteGemeinden_major),
             AnzKartierteGemeinden_all=sum(AnzKartierteGemeinden_all),
             ) %>% 
-  write_excel_csv2(paste0(cleanOutPath,"Expositionszusammenfassung.csv"))
+  write_excel_csv2(paste0(cleanOutPath,"Expositionszusammenfassung_EEA.csv"))
 ```
 
 ## GIS-Übersicht
