@@ -328,7 +328,7 @@ expoTab%>%
 expoTab %>% 
   left_join(bundesland_daten) %>% 
   select(-bundesland_nummer,-bundesland_code) %>% 
-  write_excel_csv2(paste0(cleanOutPath,"Expositionstabelle.csv"))
+  write_excel_csv2(paste0(PATH_EXPO_OUTPUT,"Expositionstabelle.csv"))
 
 
 expoTab %>% 
@@ -340,6 +340,6 @@ expoTab %>%
             AnzKartierteGemeinden_major=sum(AnzKartierteGemeinden_major),
             AnzKartierteGemeinden_all=sum(AnzKartierteGemeinden_all),
             ) %>% 
-  write_excel_csv2(paste0(cleanOutPath,"Expositionszusammenfassung_EEA.csv"))
+  write_excel_csv2(paste0(PATH_EXPO_OUTPUT,"Expositionszusammenfassung_EEA.csv"))
 ```
 
