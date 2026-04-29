@@ -18,6 +18,9 @@ PATH_BUNDESLAND_DATA    <- "data/Gebietstabellen/bundesland_daten.csv"
 PATH_EXPO_OUTPUT       <- "data/Expositionsdaten/processed/"
 PATH_AREA_OUTPUT       <- "data/Gebietstabellen/processed/"
 
+# Reused data path
+PATH_GEMEINDE_KREIS_DATA<-paste0(PATH_AREA_OUTPUT,"gv_kreis_gemeinden.csv")
+PATH_ALLEXPO_DATA     <-paste0(PATH_EXPO_OUTPUT,"allExpo.csv")
 # Regional filter
 HESSEN_ONLY            <- TRUE
 HESSEN_BUNDESLAND_CODE <- "06"
