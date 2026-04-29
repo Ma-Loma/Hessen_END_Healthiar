@@ -271,7 +271,7 @@ dataOut <-
 
 ```{r datenexport}
 #| message: false
-cleanOutPath<-"data/Expositionsdaten/sauber/"
+cleanOutPath<-"data/Expositionsdaten/processed/"
 
 dataOut %>% 
   select(-name_stadt_gemeinde,

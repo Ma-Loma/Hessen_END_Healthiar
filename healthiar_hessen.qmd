@@ -41,14 +41,14 @@ functionsETCHE <- read_excel("data/ETCHE/functionsETCHE.xlsx") %>%
 
 # Gemeinde- und Kreisnamen laden
 gemeinden_daten <- read_delim(
-  "data/Gebietstabellen/sauber/gv_kreis_gemeinden.csv",
+  "data/Gebietstabellen/processed/gv_kreis_gemeinden.csv",
   delim = ";",
   escape_double = FALSE,
   trim_ws = TRUE
 )
 
 allExpo <- read_delim(
-  "data/Expositionsdaten/sauber/allExpo.csv",
+  "data/Expositionsdaten/processed/allExpo.csv",
   delim = ";",
   escape_double = FALSE,
   trim_ws = TRUE

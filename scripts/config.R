@@ -14,7 +14,8 @@ PATH_KREISE_DATA       <- "data/Gebietstabellen/kreise_daten.csv"
 PATH_GEMEINDEN_DATA    <- "data/Gebietstabellen/gemeinden_daten.csv"
 
 # Output paths
-PATH_EXPO_OUTPUT       <- "data/Expositionsdaten/sauber/"
+PATH_EXPO_OUTPUT       <- "data/Expositionsdaten/processed/"
+PATH_AREA_OUTPUT       <- "data/Gebietstabellen/processed/"
 
 # Regional filter
 HESSEN_ONLY            <- TRUE
@@ -22,3 +23,4 @@ HESSEN_BUNDESLAND_CODE <- "06"
 
 # Create output directory if needed
 dir.create(PATH_EXPO_OUTPUT, recursive = TRUE, showWarnings = FALSE)
+dir.create(PATH_AREA_OUTPUT, recursive = TRUE, showWarnings = FALSE)
