@@ -10,7 +10,6 @@ rm(list = ls())
 #falls aktuellster healthiar gewünscht; diese Lade-Methode funkioniert u.U. nicht auf allen Rechnern
 # library(remotes)
 # remotes::install_github(repo = "SwissTPH/healthiar", build_vignettes = TRUE)
-# hier Standardmethode
 library(tidyverse)
 library(healthiar)
 library(readxl)
@@ -118,7 +117,7 @@ calc_macro_ar_impact <- function(dat) {
 
 ## Expositionsdaten und ERF-Funktionen zusammenführen
 
-Um die Umweltbedingte Krankheitslast zu berechnen, braucht healthiar ein dataframe mit expositionen und ERF zusammen. Das Zusammenführen geschieht hier:
+Um die Umweltbedingte Krankheitslast zu berechnen, braucht healthiar ein dataframe mit Expositionszahlen und ERF zusammen. Das Zusammenführen geschieht hier:
 
 ```{r merge-exposure-erf}
 dat_exp_ERF <- allExpo_w %>%
