@@ -12,6 +12,7 @@ PATH_GV_REFERENCE      <- "data/Gebietstabellen/GV100AD_30112025.txt"
 PATH_VG250_GIS         <- "data/Gebietstabellen/DE_VG250.gpkg"
 PATH_KREISE_DATA       <- "data/Gebietstabellen/kreise_daten.csv"
 PATH_GEMEINDEN_DATA    <- "data/Gebietstabellen/gemeinden_daten.csv"
+PATH_BUNDESLAND_DATA    <- "data/Gebietstabellen/bundesland_daten.csv"
 
 # Output paths
 PATH_EXPO_OUTPUT       <- "data/Expositionsdaten/processed/"

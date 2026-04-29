@@ -20,6 +20,7 @@ library(sf)
 ```{r}
 #| label: load_shared_util_fkt
 source("scripts/utils.R")
+source("scripts/config.R")
 ```
 
 
@@ -32,9 +33,7 @@ Lärmexpositionsdaten werden häufig als Exceltabellen z.B. von Landes- oder Bun
 In der Datei
 
 ```{r metadatentabelle}
-
-pfad_metadaten<-"data/Expositionsdaten/MetadatenExpositionsdaten.csv"
-pfad_metadaten
+PATH_METADATA_EXPOSURE
 ```
 
 liegt die manuell zu pflegende Metadatentabelle. Der Inhalt wird hier eingelesen
@@ -43,7 +42,7 @@ liegt die manuell zu pflegende Metadatentabelle. Der Inhalt wird hier eingelesen
 
 meta <-
   read_delim(
-    pfad_metadaten,
+    PATH_METADATA_EXPOSURE,
     delim = ";",
     escape_double = FALSE,
     trim_ws = TRUE
@@ -126,10 +125,14 @@ for (i in 1:nrow(meta)) {
 Bislang haben die gemeinde_kennziffern ein uneinheitliches Format: sie umfassen entweder 0, 1 oder führende Ziffern, die das Bundesland codieren.
 
 ```{r GKZdarstellen}
-bundesland_daten <- read_delim("data/Gebietstabellen/bundesland_daten.csv", 
-    delim = ";", escape_double = FALSE, col_types = cols(bundesland_code = col_character()), 
-    trim_ws = TRUE)
-bundesland_daten%>% 
+bundesland_daten <- read_delim(
+  PATH_BUNDESLAND_DATA,
+  delim = ";",
+  escape_double = FALSE,
+  col_types = cols(bundesland_code = col_character()),
+  trim_ws = TRUE
+)
+bundesland_daten %>%
   knitr::kable()
 
 ```
@@ -146,14 +149,13 @@ data<-data %>%
 Die Datei
 
 ```{r gv_pfad}
-pfad_gv_datei<-"./data/Gebietstabellen/GV100AD_30112025.txt"
-pfad_gv_datei
+PATH_GV_REFERENCE
 ```
 
 liegt in einem "fixed width" Format vor, welches gut maschinen- aber schlecht menschenlesbar ist. Hier werden nur die relevanten Zeilen eingelesen,
 
 ```{r gv_einlesen}
-gv_gemeinden <- pfad_gv_datei %>%
+gv_gemeinden <- PATH_GV_REFERENCE %>%
   readLines(., encoding = "UTF-8") %>%
   tibble(
     satzart               = substr(., 1, 2),
@@ -181,7 +183,7 @@ gv_gemeinden <- pfad_gv_datei %>%
   select(-., -satzart)
 
 kreise_daten <- read_delim(
-  "./data/Gebietstabellen/kreise_daten.csv",
+  PATH_KREISE_DATA,
   delim = ";",
   escape_double = FALSE,
   trim_ws = TRUE
@@ -194,7 +196,7 @@ kreise_daten <- read_delim(
 gv_gemeinden %>% 
   mutate(bundesland_kreis_code=str_sub(gemeinde_kennziffer,1,5)) %>% 
   left_join(kreise_daten,by=join_by("bundesland_kreis_code")) %>% 
-  write_excel_csv2("data/Gebietstabellen/sauber/gv_kreis_gemeinden.csv")
+  write_excel_csv2(paste0(PATH_AREA_OUTPUT,"gv_kreis_gemeinden.csv"))
 
 ```
 
@@ -351,11 +353,9 @@ expoTab %>%
 Ich lade hier die [GIS-Daten der Gemeinden](https://daten.gdz.bkg.bund.de/produkte/vg/vg250_ebenen_0101/aktuell/vg250_01-01.utm32s.gpkg.ebenen.zip) des Bundesamts für Kartographie und Geodäsie (BKG) herunter und extrahiere daraus alle deutschen Gemeindegrenzen.
 
 ```{r vg250_laden}
-#st_layers("./data/GISDaten/DE_VG250.gpkg")
-
-vg250 <- st_read("./data/Gebietstabellen/DE_VG250.gpkg", layer = "vg250_gem") %>%
+vg250 <- st_read(PATH_VG250_GIS, layer = "vg250_gem") %>%
   filter(GF == 4) # nur Landflächen, nicht Wasserflächen ...
-  #filter(SN_G != "000") %>%
+#filter(SN_G != "000") %>%
 #  mutate(gemeinde_kennziffer = paste0(str_sub(SDV_ARS, 1, 5), str_sub(SDV_ARS, -3)))
 # %>%
 #   group_by(gemeinde_kennziffer) %>%

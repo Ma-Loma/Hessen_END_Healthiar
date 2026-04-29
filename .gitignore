@@ -6,6 +6,7 @@
 .Ruserdata
 *.Rproj.user/
 *~
+~*
 
 # ============================================================================
 # Data Files (DO NOT COMMIT PROCESSED DATA)
