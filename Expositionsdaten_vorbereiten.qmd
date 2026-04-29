@@ -10,6 +10,7 @@ execute:
 
 ```{r front_matter}
 rm(list = ls())
+.libPaths("M:/R/library-4.6")
 library(tidyverse)
 library(readxl)
 library(flextable)
@@ -138,7 +139,6 @@ Hier wird sie nun vereinheitlicht auf das 8-stellige Format mit dem führenden z
 ```{r GKZvereinheitlichen}
 data<-data %>% 
   gkz_vereinheitlichen()
-
 ```
 
 ## Anreichern mit Gemeindeverzeichnis Daten (Destatis)
