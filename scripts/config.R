@@ -8,7 +8,7 @@
 # Data paths
 PATH_METADATA_EXPOSURE <- "data/Expositionsdaten/raw/MetadatenExpositionsdaten.csv"
 PATH_ETCHE_FUNCTIONS   <- "data/ETCHE/functionsETCHE.xlsx"
-PATH_GV_REFERENCE      <- "data/Gebietstabellen/raw/GV100AD_30112025.txt"
+PATH_GV_REFERENCE      <- "data/Gebietstabellen/raw/GV100AD_31122022.txt"#date of END
 PATH_VG250_GIS         <- "data/Gebietstabellen/raw/DE_VG250.gpkg"
 PATH_KREISE_DATA       <- "data/Gebietstabellen/raw/kreise_daten.csv"
 PATH_GEMEINDEN_DATA    <- "data/Gebietstabellen/raw/gemeinden_daten.csv"
