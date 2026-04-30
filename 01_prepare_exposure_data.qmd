@@ -342,4 +342,3 @@ expoTab %>%
             ) %>% 
   write_excel_csv2(paste0(PATH_EXPO_OUTPUT,"Expositionszusammenfassung_EEA.csv"))
 ```
-
