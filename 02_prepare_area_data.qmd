@@ -45,13 +45,23 @@ ggplot(vg250) +
   theme_void()
 ```
 
+Aus den Daten ergibt sich auch die Bevölkerungsdichte:
+
+```{r}
+#| label: Bevoelkerungsdichtekarte
+ggplot(vg250) +
+  geom_sf(aes(geometry=geom,fill=EWZ/KFL),color=NA)+
+  scale_fill_viridis_c(name="Bevölkerungsdichte",direction = -1)+
+  theme_void()
+```
+
 Statistik über die Gemeinden in Deutschland:
 
 ```{r vg250_gemeindestatistik}
 vg250 %>% 
   st_drop_geometry() %>% 
   group_by(BEM,BEZ) %>% 
-  summarise(n=n()) %>% 
+  summarise(n=n(),Bevölkerung=sum(EWZ)) %>% 
   knitr::kable()
 
 ```
