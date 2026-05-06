@@ -143,43 +143,11 @@ data<-data %>%
   gkz_vereinheitlichen()
 ```
 
-## Anreichern mit Gemeindeverzeichnis Daten (Destatis)
 
-Die Datei
+## Wiedereinlesen Destatisdaten
 
-```{r gv_pfad}
-PATH_GV_REFERENCE
-```
-
-liegt in einem "fixed width" Format vor, welches gut maschinen- aber schlecht menschenlesbar ist. Hier werden nur die relevanten Zeilen eingelesen,
-
-```{r gv_einlesen}
-gv_gemeinden <- PATH_GV_REFERENCE %>%
-  readLines(., encoding = "UTF-8") %>%
-  tibble(
-    satzart               = substr(., 1, 2),
-    gemeinde_kennziffer   = substr(., 11, 18),
-    gemeinde_bezeichnung   = substr(., 23, 72),
-    gemeinde_kennzeichnung = substr(., 123, 124),
-    bevoelkerung      = substr(., 140, 150) %>% as.numeric(),
-    flaeche = substr(., 129, 139) %>% as.numeric()
-  ) %>%
-  filter(satzart == "60") %>%
-  mutate(
-    gemeinde_kennzeichnung = replace_values(
-      gemeinde_kennzeichnung,
-      "60" ~ "Markt",
-      "61" ~ "Kreisfreie Stadt",
-      "62" ~ "Stadtkreis",
-      "63" ~ "Stadt",
-      "64" ~ "Kreisangehörige Gemeinde",
-      "65" ~ "gemeindefreies Gebiet, bewohnt",
-      "66" ~ "gemeindefreies Gebiet, unbewohnt",
-      "67" ~ "große Kreisstadt"
-    )
-  ) %>%
-  mutate(gemeinde_bezeichnung = str_squish(gemeinde_bezeichnung)) %>%
-  select(-., -satzart)
+```{r}
+#| label: readProcessedData
 
 kreise_daten <- read_delim(
   PATH_KREISE_DATA,
@@ -190,26 +158,17 @@ kreise_daten <- read_delim(
   mutate(bundesland_kreis_code=paste0(Bundesland_Code,
                                       Kreis_Code))
 
-
-
-gv_gemeinden %>% 
-  mutate(bundesland_kreis_code=str_sub(gemeinde_kennziffer,1,5)) %>% 
-  left_join(kreise_daten,by=join_by("bundesland_kreis_code")) %>% 
-  write_excel_csv2(paste0(PATH_AREA_OUTPUT,"gv_kreis_gemeinden.csv"))
+gv_gemeinden <-
+  paste0(PATH_AREA_OUTPUT, "gv_kreis_gemeinden.csv") %>%
+  read_delim(.,
+             delim = ";",
+             escape_double = FALSE,
+             trim_ws = TRUE)
 
 ```
 
-und die Felder "gemeinde_kennziffer, gemeinde_bezeichnung, bevoelkerung" extrahiert. Ein Auszug daraus findet sich in @tbl-gemeindeverzeichnis.
 
-```{r}
-#| label: tbl-gemeindeverzeichnis
-#| tbl-cap: "Ein Auszug aus dem so gewonnenen Gemeindeverzeichnis"
-#| tbl-colwidths: [60,40]
-gv_gemeinden %>% 
-  slice_sample(n=5) %>%
-  knitr::kable()
-```
-
+## Anreichern mit Gemeindeverzeichnis Daten (Destatis)
 Die so gewonnenen Gemeindedaten werden nun an die Expositionsdaten angehängt. Für den Teil, in dem schon die Gemeindekennziffer existiert ist dies einfach
 
 ```{r gemeindedaten_anhaengen}
