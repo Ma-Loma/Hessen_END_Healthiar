@@ -251,7 +251,6 @@ bundesland_daten <- read_delim(
 resEEA_all %>% 
   mutate(geo_id_macro=str_sub(geo_id_micro,1,2)) %>% 
   left_join(bundesland_daten,by=join_by(geo_id_macro==bundesland_code)) %>% 
-
   ggplot(aes(x = outcome, fill = bundesland_name, y = impact)) +
   geom_col() +
   # facet_grid(rows = vars(metric, outcome),
@@ -271,22 +270,58 @@ ggsave("plots/DALY_Eionet_Ballung_all.png", width = 12, height = 8)
 
 
 ```{r}
+#| label: plotKAGZRM_burden
 
-kagzrm_kreise <- c("Darmstadt-Dieburg", "Groß-Gerau", "Main-Taunus-Kreis", "Offenbach")
-kagzrm_gemeinden<-c("Biebesheim","Bischofsheim","Budenheim","Büttelborn","Darmstadt","Dreieich","Egelsbach","Erzhausen","Flörsheim","Frankfurt am Main","Ginsheim-Gustavsburg","Griesheim","Groß-Gerau","Hanau","Hochheim am Main","Kelsterbach","Maintal","Mainz","Mörfelden-Walldorf","Mühlheim am Main","Nauheim","Neu-Isenburg","Offenbach","Raunheim","Riedstadt","Rödermark","Roßdorf","Rüsselsheim","Trebur","Walluf","Weiterstadt","Wiesbaden")
+# kagzrm_kreise <- c("Darmstadt-Dieburg", "Groß-Gerau", "Main-Taunus-Kreis", "Offenbach")
+# kagzrm_gemeinden<-c("Biebesheim","Bischofsheim","Budenheim","Büttelborn","Darmstadt","Dreieich","Egelsbach","Erzhausen","Flörsheim","Frankfurt am Main","Ginsheim-Gustavsburg","Griesheim","Groß-Gerau","Hanau","Hochheim am Main","Kelsterbach","Maintal","Mainz","Mörfelden-Walldorf","Mühlheim am Main","Nauheim","Neu-Isenburg","Offenbach","Raunheim","Riedstadt","Rödermark","Roßdorf","Rüsselsheim","Trebur","Walluf","Weiterstadt","Wiesbaden")
 
-bla<-
-resBundesland_major %>% 
-  left_join(gemeinden_daten,by=join_by(geo_id_micro==gemeinde_kennziffer)) 
-#%>% 
-  filter(Kreis_Name %in% kagzrm_kreise|
-           gemeinde_bezeichnung %in% kagzrm_gemeinden)
+kagzrm_gemeinden <- read_delim(
+  PATH_KAGZRM_GEMEINDE_DATA,
+  delim = ";",
+  escape_double = FALSE,
+  trim_ws = TRUE
+)
+
+kagzrm_kreise <- read_delim(
+  PATH_KAGZRM_KREISE_DATA,
+  delim = ";",
+  escape_double = FALSE,
+  trim_ws = TRUE
+) %>% 
+  mutate(Kreis_Code=as.character(Kreis_Code))
+
+res_KAGZRM_gem <-
+  resBundesland_major %>%
+  left_join(gemeinden_daten, by = join_by(geo_id_micro == gemeinde_kennziffer)) %>%
+  semi_join(kagzrm_gemeinden, by = join_by(geo_id_micro == gemeinde_kennziffer))
+
+
+res_KAGZRM_kr <-
+  resBundesland_major %>%
+  left_join(gemeinden_daten, by = join_by(geo_id_micro == gemeinde_kennziffer)) %>%
+  semi_join(kagzrm_kreise, by = c("Bundesland_Code", "Kreis_Code"))
+
+res_KAGZRM<-
+  bind_rows(res_KAGZRM_gem,
+            res_KAGZRM_kr) %>% 
+  unique()
+
+res_KAGZRM %>%
+  ggplot(aes(x = outcome, fill = Kreis_Name , y = impact)) +
+  geom_col() +
+  labs(title = "Umgebungslärmbedingte Krankheitslast errechnet aus \nULR-Straßenlärmbelastetenzahlen", x = "Endpunkt", y = "Attributable Krankheitslast [DALY]") +
+  #guides(fill = guide_legend(title = "Kreis"))+
+  #  scale_y_continuous(breaks = NULL)+
+  theme_gray(base_size = 15) +
+  facet_grid(rows = vars(source),
+             cols = vars(kartierungsumfang))
 
 
 ```
 
 
 ```{r}
+#| label: alleEEAresult
 resEEA_all %>% 
   group_by(outcome) %>% 
   summarize(DALY=sum(impact))
