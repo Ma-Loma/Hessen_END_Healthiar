@@ -239,7 +239,7 @@ ggsave("plots/exposition_hessen.png", width = 12, height = 8)
 
 ## Gesundheitsauswirkungen in Regionen
 
-```{r plot-exposure-kreis-gg}
+```{r plot-ballubgsraeume}
 bundesland_daten <- read_delim(
   PATH_BUNDESLAND_DATA,
   delim = ";",
@@ -248,12 +248,10 @@ bundesland_daten <- read_delim(
   trim_ws = TRUE
 )
 
-kagzrm_kreise <- c("Darmstadt-Dieburg", "Groß-Gerau", "Main-Taunus-Kreis", "Offenbach")
-
 resEEA_all %>% 
   mutate(geo_id_macro=str_sub(geo_id_micro,1,2)) %>% 
   left_join(bundesland_daten,by=join_by(geo_id_macro==bundesland_code)) %>% 
-#   filter(geo_id_macro %in% kagzrm_kreise) %>%
+
   ggplot(aes(x = outcome, fill = bundesland_name, y = impact)) +
   geom_col() +
   # facet_grid(rows = vars(metric, outcome),
@@ -269,6 +267,22 @@ resEEA_all %>%
 
 ggsave("plots/DALY_Eionet_Ballung_all.png", width = 12, height = 8)
 #ggsave("plots/DALY_Bundesländer_major.png", width = 12, height = 8,dpi=200)
+```
+
+
+```{r}
+
+kagzrm_kreise <- c("Darmstadt-Dieburg", "Groß-Gerau", "Main-Taunus-Kreis", "Offenbach")
+kagzrm_gemeinden<-c("Biebesheim","Bischofsheim","Budenheim","Büttelborn","Darmstadt","Dreieich","Egelsbach","Erzhausen","Flörsheim","Frankfurt am Main","Ginsheim-Gustavsburg","Griesheim","Groß-Gerau","Hanau","Hochheim am Main","Kelsterbach","Maintal","Mainz","Mörfelden-Walldorf","Mühlheim am Main","Nauheim","Neu-Isenburg","Offenbach","Raunheim","Riedstadt","Rödermark","Roßdorf","Rüsselsheim","Trebur","Walluf","Weiterstadt","Wiesbaden")
+
+bla<-
+resBundesland_major %>% 
+  left_join(gemeinden_daten,by=join_by(geo_id_micro==gemeinde_kennziffer)) 
+#%>% 
+  filter(Kreis_Name %in% kagzrm_kreise|
+           gemeinde_bezeichnung %in% kagzrm_gemeinden)
+
+
 ```
 
 

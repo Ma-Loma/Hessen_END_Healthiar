@@ -15,6 +15,9 @@ PATH_KREISE_DATA       <- "data/Gebietstabellen/raw/kreise_daten.csv"
 PATH_GEMEINDEN_DATA    <- "data/Gebietstabellen/raw/gemeinden_daten.csv"
 PATH_BUNDESLAND_DATA   <- "data/Gebietstabellen/raw/bundesland_daten.csv"
 
+PATH_KAGZRM_KREISE_DATA<- "data/Gebietstabellen/raw/kagzrm_kreise.txt"
+PATH_KAGZRM_GEMEINDE_DATA<- "data/Gebietstabellen/raw/kagzrm_gemeinden.txt"
+
 # Output paths
 PATH_EXPO_OUTPUT       <- "data/Expositionsdaten/processed/"
 PATH_AREA_OUTPUT       <- "data/Gebietstabellen/processed/"
